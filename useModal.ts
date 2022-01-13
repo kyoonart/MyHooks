@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { Provider } from 'react-redux';
 import ReactDOM from 'react-dom';
+import store from '@src/store';
 
 const closeModalFns: Array<() => void> = [];
 
@@ -24,27 +26,30 @@ function useModal<
   const close = useCallback(() => setVisible(false), []);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const modalProps = useMemo(() => {
-    return {
+    const modalProps = {
       ...props,
-      ...openProps,
+      ...openProps
+    };
+    return {
+      ...modalProps,
       visible,
       onOk() {
         setVisible(false);
-        if (props && props.onOk) {
-          props.onOk();
+        if (modalProps.onOk) {
+          modalProps.onOk();
         }
       },
       onCancel() {
         setVisible(false);
-        if (props && props.onCancel) {
-          props.onCancel();
+        if (modalProps.onCancel) {
+          modalProps.onCancel();
         }
       },
       afterClose() {
         setClosed(true);
         setOpenProps({});
-        if (props && props.afterClose) {
-          props.afterClose();
+        if (modalProps.afterClose) {
+          modalProps.afterClose();
         }
       }
     };
@@ -68,7 +73,10 @@ function useModal<
   // 初始化/更新Modal组件
   useEffect(() => {
     if (containerRef.current) {
-      ReactDOM.render(React.createElement(Modal, modalProps), containerRef.current);
+      ReactDOM.render(
+        React.createElement(Provider, { store }, React.createElement(Modal, modalProps)),
+        containerRef.current
+      );
     }
   }, [modalProps, Modal]);
 
